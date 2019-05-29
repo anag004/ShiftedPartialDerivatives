@@ -1,6 +1,7 @@
 from scipy import *
 from numpy.linalg import matrix_rank
 from flint import *
+from progress.bar import Bar
 
 P = 1000000000 + 7
 
@@ -30,7 +31,6 @@ def get_mat(k, l, f):
 
 def D(k, l, f):
 	X = get_mat(k, l, f).astype(int).tolist()
-	print(X)
 	M = nmod_mat(X, P)
 	return M.rank()
 
@@ -55,23 +55,28 @@ def randf(s, e, t):
     return res
 
 def conj1(s, e, t, k, l, b):
-    width = (k+1)*(l+1)+(k+1)*k/2
-    M = zeros(((l + e*t + 1), s*width))
-    ans = min(s*width, s*(l+k*t+1), l + e*t + 1)
-    arr = []
-    for i in range(s):
-        q = randq(t) 
-        arr.append(q)
-        q = q ** e
-        Mi = get_mat(k, l, q)
-        M[:, i*width:(i+1)*width] = Mi 
-    res = nmod_mat(M.astype(int).tolist(), P).rank()
-    if b:
-        print("EXPECTED: " + str(ans) + " GOT: " + str(res))   
+    # width = (k+1)*(l+1)+(k+1)*k/2
+    # M = zeros(((l + e*t + 1), s*width))
+    # ans = min(s*width, s*(l+k*t+1), l + e*t + 1)
+    # arr = []
+    # for i in range(s):
+    #     q = randq(t) 
+    #     arr.append(q)
+    #     q = q ** e
+    #     Mi = get_mat(k, l, q)
+    #     M[:, i*width:(i+1)*width] = Mi 
+    # res = nmod_mat(M.astype(int).tolist(), P).rank()
+    # if b:
+    #     print("EXPECTED: " + str(ans) + " GOT: " + str(res))   
     # if res != ans:
     #     print("FAILED: " + str(res))
     #     print("EXPECTED: " + str(ans) + " GOT: " + str(res))
     #     print(arr)
+    f = randf(s, e, t)
+    ans = min((k+1)*(l+1)+(k+1)*k/2, s*(l+k*t+1), l + e*t + 1)
+    res = D(k, l, f)
+    if b and res != ans:
+        print("EXPECTED: " + str(ans) + " GOT: " + str(res))   
     return res == ans
 
 def conj2(s, e, t, k, l, b, n):
@@ -94,31 +99,24 @@ def conj2(s, e, t, k, l, b, n):
     if b:
         print("GOT: " + str(sr))
 
-e = 3
-# l = 1 
-# k = 0 
-# s = 5
-# t = 1
-# conj1(s, e, t, k, l, True)
-
-
-elim = 10
-llim = 10
-klim = 10
-slim = 10
-t = 1
+elim = 200
+llim = 200
+klim = 200  
+t = 3
+p = 0
+f = 0
+bar = Bar('Processing', max=elim-1)
 for e in range(1, elim):
     for l in range(llim):
-        for s in range(1, slim):
-            for k in range(e):
-                testTime = 1000
-                p = 0
-                f = 0
-                for i in range(testTime):
-                    if conj1(s, e, t, k, l, False):
-                        p += 1
-                    else:
-                        f += 1
-                print("e = " + str(e) + ", l = " + str(l) + ", k = " + str(k) + ", s = " + str(s))
-                print("PASSED: " + str(p))
-                print("FAILED: " + str(f))
+        for k in range(e):
+            slim = min((k*(k+1)+(l+1)*(k+1)), l + e*t + 1)/(4*(l + k*t + 1))
+            for s in range(1, slim):
+                if (conj1(s, e, t, k, l, True)):
+                    p += 1
+                else:
+                    print("TRYING " + "e = " + str(e) + " s = " + str(s) + " k = " + str(k) + " l = " + str(l))
+                    f += 1
+    bar.next()
+bar.finish()
+print("PASSED: " + str(p))
+print("FAILED: " + str(f))
