@@ -99,22 +99,24 @@ def conj2(s, e, t, k, l, b, n):
     if b:
         print("GOT: " + str(sr))
 
-elim = 200
+elim = 250
 llim = 200
 klim = 200  
-t = 3
+t = 2
 p = 0
 f = 0
 bar = Bar('Processing', max=elim-1)
-for e in range(1, elim):
+for e in range(200, elim):
     for l in range(llim):
         for k in range(e):
             slim = min((k*(k+1)+(l+1)*(k+1)), l + e*t + 1)/(4*(l + k*t + 1))
             for s in range(1, slim):
+
                 if (conj1(s, e, t, k, l, True)):
                     p += 1
+                    # print("TRYING " + "e = " + str(e) + " s = " + str(s) + " k = " + str(k) + " l = " + str(l) + str(" PASSED"))
                 else:
-                    print("TRYING " + "e = " + str(e) + " s = " + str(s) + " k = " + str(k) + " l = " + str(l))
+                    print("TRYING " + "e = " + str(e) + " s = " + str(s) + " k = " + str(k) + " l = " + str(l) + str(" FAILED"))
                     f += 1
     bar.next()
 bar.finish()
